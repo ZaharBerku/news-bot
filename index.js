@@ -25,7 +25,7 @@ const start = async () => {
     const chatId = msg.chat.id;
 
     try {
-      if (text === "/news") {
+      if (text.startsWith("/news")) {
         const text= await openaiapi()
         return bot.sendMessage(chatId, text);
       }
