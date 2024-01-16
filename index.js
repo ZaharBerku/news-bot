@@ -1,45 +1,57 @@
-require("dotenv").config();
 const TelegramApi = require("node-telegram-bot-api");
-// const news = require("./commands/news.js");
-const openaiapi = require("./api/openai.js");
+const news = require("./commands/news.js");
+require("dotenv").config();
 
-const { TELEGRAM_BOT_TOKEN } = process.env;
+const { TELEGRAM_BOT_TOKEN, CHANNEL_ID } = process.env;
 
 const bot = new TelegramApi(TELEGRAM_BOT_TOKEN, { polling: true });
 
-const userInfo = {
-  lang: "",
-  location: "",
-};
+let idInterval = null;
+let prevTitle = null;
+let isLoading = false;
 
-const start = async () => {
+const start = () => {
   bot.setMyCommands([
     {
       command: "/news",
-      description: "Generate the most relevant news in your country",
+      description: "Почати відслітковувати акруальні новини.",
     },
+    { command: "/stop", description: "Зупинити відслітковувати новини." },
   ]);
-
-  bot.on("message", async (msg) => {
+  bot.on("message", (msg) => {
     const text = msg.text;
     const chatId = msg.chat.id;
-
     try {
-      if (text.startsWith("/news")) {
-        const text= await openaiapi()
-        return bot.sendMessage(chatId, text);
+      if (text?.startsWith("/news")) {
+        idInterval = setInterval(async () => {
+          if (!isLoading) {
+            isLoading = true;
+            const result = await news(prevTitle, isLoading);
+            if (result) {
+              const { lastNews, answer } = result;
+              prevTitle = lastNews.title;
+              console.log(answer, 'answer')
+              bot.sendMessage(CHANNEL_ID, answer, { parse_mode: "Markdown" });
+            }
+            isLoading = false;
+          }
+        }, 5000);
+        return bot.sendMessage(
+          CHANNEL_ID,
+          "Почав дивитись на новинами України."
+        );
       }
-      return bot.sendMessage(chatId, "I don't understand you, try again!)");
+      if (text?.startsWith("/stop")) {
+        if (idInterval) {
+          clearInterval(idInterval);
+          return bot.sendMessage(CHANNEL_ID, "Генерація новин - призепинена.");
+        }
+      }
+      return bot.sendMessage(chatId, "I don't understand you, try again!");
     } catch (e) {
-      console.log(e, "e");
-      return bot.sendMessage(chatId, "There's been some kind of mistake!)");
+      console.error(e); // Більш детальне логування помилки
+      return bot.sendMessage(chatId, "There's been some kind of mistake!");
     }
-  });
-
-  bot.on("callback_query", async (msg) => {
-    const data = msg.data;
-    const chatId = msg.message.chat.id;
-    userInfo.location = data;
   });
 };
 

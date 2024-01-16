@@ -1,23 +1,32 @@
-// const createKeyboardCountry = (bot, chatId) => {
-//   const countries = ["Poland", "Ukraine", "UK", "Germany", "France"];
+const Parser = require("rss-parser");
+const iconv = require("iconv-lite");
+const openaiapi = require("../api/openai");
 
-//   const keyboard = countries.map((country) => {
-//     return [{ text: country, callback_data: country }];
-//   });
+require("dotenv").config();
 
-//   // return setInterval(() => {
-//   //   bot.sendMessage(chatId, "Please select a country:", {
-//   //     reply_markup: {
-//   //       inline_keyboard: keyboard,
-//   //     },
-//   //   });
-//   // }, 2000);
-// };
+const parser = new Parser();
 
-const news = (bot, userInfo, chatId) => {
-  if (userInfo.location) {
+const { FEED_URL } = process.env;
+
+const news = async (prevTitle) => {
+  const rss_feed = await parser.parseURL(FEED_URL);
+  const news = rss_feed.items.filter((entry) => {
+    const publishedDate = new Date(entry.pubDate);
+    const currentDate = new Date();
+
+    const twentyMinutesAgo = new Date(currentDate.getTime() - 30 * 60 * 1000);
+    return publishedDate > twentyMinutesAgo;
+  });
+  const lastNews = news.at(0);
+  console.log("prevTitle", new Date());
+  if (lastNews && lastNews.title !== prevTitle) {
+    const answer = await openaiapi(lastNews);
+    return {
+      lastNews,
+      answer,
+    };
   } else {
-    return createKeyboardCountry(bot, chatId);
+    return null;
   }
 };
 
