@@ -1,5 +1,6 @@
 const TelegramApi = require("node-telegram-bot-api");
 const news = require("./commands/news.js");
+const clearIdInterval = require("./helpers/clearIdInterval.js");
 require("dotenv").config();
 
 const { TELEGRAM_BOT_TOKEN, CHANNEL_ID } = process.env;
@@ -18,20 +19,22 @@ const start = () => {
     },
     { command: "/stop", description: "Зупинити відслітковувати новини." },
   ]);
-  bot.on("message", (msg) => {
+  bot.on("message", async (msg) => {
     const text = msg.text;
     const chatId = msg.chat.id;
     try {
       if (text?.startsWith("/news")) {
+        if (idInterval) {
+          clearIdInterval(idInterval);
+        }
+  
         idInterval = setInterval(async () => {
           if (!isLoading) {
             isLoading = true;
-            const result = await news(prevTitle, isLoading);
+            const result = await news(prevTitle, bot, CHANNEL_ID);
             if (result) {
-              const { lastNews, answer } = result;
-              prevTitle = lastNews.title;
-              console.log(answer, 'answer')
-              bot.sendMessage(CHANNEL_ID, answer, { parse_mode: "Markdown" });
+              const { lastNews } = result;
+              prevTitle = lastNews?.title;
             }
             isLoading = false;
           }
@@ -43,13 +46,13 @@ const start = () => {
       }
       if (text?.startsWith("/stop")) {
         if (idInterval) {
-          clearInterval(idInterval);
+          clearIdInterval(idInterval);
           return bot.sendMessage(CHANNEL_ID, "Генерація новин - призепинена.");
         }
       }
       return bot.sendMessage(chatId, "I don't understand you, try again!");
     } catch (e) {
-      console.error(e); // Більш детальне логування помилки
+      console.error(e);
       return bot.sendMessage(chatId, "There's been some kind of mistake!");
     }
   });
