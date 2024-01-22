@@ -11,6 +11,7 @@ const {
   LISTEN_CHANNEL_ID,
   API_ID: apiId,
   SESSION_TOKEN,
+  SECOND_LISTEN_CHANNEL_ID,
 } = process.env;
 
 let idTimeout = null;
@@ -47,6 +48,7 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
+  console.log(event, 'event')
   if (message.media) {
     medias.push(message.media);
   }
