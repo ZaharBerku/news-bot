@@ -1,16 +1,15 @@
 require("dotenv").config();
-const tools = require("../helpers/tools.js");
-const toolsFunc = require("../helpers/toolsFunc.js");
 
 const { OPENAI_API_KEY } = process.env;
 
-const openaiapi = async (news, bot, channelId) => {
+const openaiapi = async (news) => {
+
   const messages = [
     {
       role: "user",
       content: `Привіт GPT згенеруй та надішли телеграм пост, використовуючи цю інформацію - ${JSON.stringify(
         news
-      )}, але створюй пост наче ти людина яка веде його і враховуй граматику та не допускай лексичних помилок, переши трохи текст, використовуй теги, маркадауни та смайлики у вигляді візуальних символівґ і не використовуй привітання. Дякую!`,
+      )}, але створюй пост наче ти людина яка веде його і враховуй граматику та не допускай лексичних помилок, перепиши трохи текст своїми словами, але не міняй заголовок статі, використовуй теги, маркадауни та смайлики у вигляді візуальних символів і не використовуй привітання, якщо хочеш додати посилання на перше джерело, додавай його в текст статі не явно, але якщо це посилання на телеграм канал, нетреба це додавати і якщо використовується офіційна назва будь-якою мовою не треба її перекладати, на любе слово. Дякую!`,
     },
   ];
 
@@ -23,8 +22,6 @@ const openaiapi = async (news, bot, channelId) => {
     body: JSON.stringify({
       model: "gpt-4-1106-preview",
       messages: messages,
-      tools,
-      tool_choice: "auto",
     }),
   };
 
@@ -33,19 +30,7 @@ const openaiapi = async (news, bot, channelId) => {
     requestOptions
   ).then((res) => res.json());
   const responseMessage = response.choices[0].message;
-
-  const toolCalls = responseMessage.tool_calls;
-
-  if (responseMessage.tool_calls) {
-    const availableFunctions = toolsFunc;
-
-    for (const toolCall of toolCalls) {
-      const functionName = toolCall.function.name;
-      const functionToCall = availableFunctions[functionName];
-      const functionArgs = JSON.parse(toolCall.function.arguments);
-      await functionToCall(functionArgs, bot, channelId);
-    }
-  }
+  return responseMessage.content;
 };
 
 module.exports = openaiapi;

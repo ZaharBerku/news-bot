@@ -1,5 +1,5 @@
 const TelegramApi = require("node-telegram-bot-api");
-const news = require("./commands/news.js");
+const runClient = require("./client/index.js");
 const clearIdInterval = require("./helpers/clearIdInterval.js");
 require("dotenv").config();
 
@@ -24,21 +24,7 @@ const start = () => {
     const chatId = msg.chat.id;
     try {
       if (text?.startsWith("/news")) {
-        if (idInterval) {
-          clearIdInterval(idInterval);
-        }
-  
-        idInterval = setInterval(async () => {
-          if (!isLoading) {
-            isLoading = true;
-            const result = await news(prevTitle, bot, CHANNEL_ID);
-            if (result) {
-              const { lastNews } = result;
-              prevTitle = lastNews?.title;
-            }
-            isLoading = false;
-          }
-        }, 5000);
+        runClient();
         return bot.sendMessage(
           CHANNEL_ID,
           "Почав дивитись на новинами України."
