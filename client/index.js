@@ -49,41 +49,45 @@ async function authorize() {
 async function eventHandler(event) {
   const message = event.message;
   console.log(event, 'event')
-  if (message.media) {
-    medias.push(message.media);
-  }
-  if (!messagePost) {
-    messagePost = message.message;
-  }
-  if (!idTimeout) {
-    idTimeout = setTimeout(async () => {
-      const answer = await openaiapi(messagePost);
-      if (medias.length) {
-        await client.sendFile(CHANNEL_ID, {
-          file: medias,
-          caption: answer,
-          parseMode: "markdown",
-        });
-      } else {
-        await client.sendMessage(CHANNEL_ID, {
-          message: answer,
-          parseMode: "markdown",
-        });
-      }
+  if (message && message?.postAuthor) {
+    if (message.media) {
+      medias.push(message.media);
+    }
+    if (!messagePost) {
+      messagePost = message.message;
+    }
+    if (!idTimeout) {
+      idTimeout = setTimeout(async () => {
+        const answer = await openaiapi(messagePost);
+        if (medias.length) {
+          await client.sendFile(CHANNEL_ID, {
+            file: medias,
+            caption: answer,
+            parseMode: "md2",
+          });
+        } else {
+          await client.sendMessage(CHANNEL_ID, {
+            message: answer,
+            parseMode: "md2",
+          });
+        }
 
-      messagePost = null;
-      medias = [];
-      clearTimeout(idTimeout);
-      idTimeout = null;
-    }, 2000);
+        messagePost = null;
+        medias = [];
+        clearTimeout(idTimeout);
+        idTimeout = null;
+      }, 2000);
+    }
+  } else {
+    run();
   }
 }
 
-async function run(bot) {
+async function run() {
   const client = await authorize();
 
   client.addEventHandler(
-    (event) => eventHandler(event, bot),
+    (event) => eventHandler(event),
     new NewMessage({ chats: [LISTEN_CHANNEL_ID] })
   );
 }
