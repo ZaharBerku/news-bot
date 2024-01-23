@@ -48,8 +48,8 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(event, 'event')
-  if (message && message?.postAuthor) {
+  console.log(message, 'message')
+  if (message && message.message) {
     if (message.media) {
       medias.push(message.media);
     }
