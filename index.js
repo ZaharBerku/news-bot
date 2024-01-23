@@ -25,10 +25,7 @@ const start = () => {
     try {
       if (text?.startsWith("/news")) {
         runClient();
-        return bot.sendMessage(
-          CHANNEL_ID,
-          "Почав дивитись на новинами України."
-        );
+        return;
       }
       if (text?.startsWith("/stop")) {
         if (idInterval) {
