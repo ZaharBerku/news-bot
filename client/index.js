@@ -14,6 +14,9 @@ const {
   SECOND_LISTEN_CHANNEL_ID,
 } = process.env;
 
+const ACTIVE = "Вся Україна — ракетна небезпека";
+const DIACTIVETE = "Загроза минула — відбій повітряної тривоги.";
+
 let idTimeout = null;
 let medias = [];
 let messagePost = null;
@@ -48,15 +51,20 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(message, 'message')
+  console.log(message, "message");
   if (message && message.message) {
-    if (message.media) {
-      medias.push(message.media);
-    }
     if (!messagePost) {
       messagePost = message.message;
     }
-    if (!idTimeout) {
+    if (message.media) {
+      medias.push(message.media);
+    }
+    if (
+      messagePost &&
+      !idTimeout &&
+      !messagePost.includes(ACTIVE) &&
+      !messagePost.includes(DIACTIVETE)
+    ) {
       idTimeout = setTimeout(async () => {
         const answer = await openaiapi(messagePost);
         if (medias.length) {
@@ -77,6 +85,16 @@ async function eventHandler(event) {
         clearTimeout(idTimeout);
         idTimeout = null;
       }, 2000);
+    } else if (messagePost) {
+      const isAttac = messagePost.includes(ACTIVE);
+      await client.sendMessage(CHANNEL_ID, {
+        message: isAttac ? messagePost : "🟢 **ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ** 🟢",
+        parseMode: "md2",
+      });
+      messagePost = null;
+      medias = [];
+    } else {
+      medias = [];
     }
   } else {
     run();
