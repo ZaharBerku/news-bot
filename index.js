@@ -3,7 +3,7 @@ const runClient = require("./client/index.js");
 const clearIdInterval = require("./helpers/clearIdInterval.js");
 require("dotenv").config();
 
-const { TELEGRAM_BOT_TOKEN, CHANNEL_ID } = process.env;
+const { TELEGRAM_BOT_TOKEN, CHANNEL_ID, USER_ID } = process.env;
 
 const bot = new TelegramApi(TELEGRAM_BOT_TOKEN, { polling: true });
 
@@ -22,6 +22,9 @@ const start = () => {
   bot.on("message", async (msg) => {
     const text = msg.text;
     const chatId = msg.chat.id;
+    if (msg.from.id !== +USER_ID) {
+      return;
+    }
     try {
       if (text?.startsWith("/news")) {
         runClient();

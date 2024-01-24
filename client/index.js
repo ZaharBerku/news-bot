@@ -51,20 +51,15 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(message, "message");
-  if (message && message.message) {
+  console.log(message, "message 1");
+  if (message) {
     if (!messagePost) {
       messagePost = message.message;
     }
     if (message.media) {
       medias.push(message.media);
     }
-    if (
-      messagePost &&
-      !idTimeout &&
-      !messagePost.includes(ACTIVE) &&
-      !messagePost.includes(DIACTIVETE)
-    ) {
+    if (messagePost && !idTimeout) {
       idTimeout = setTimeout(async () => {
         const answer = await openaiapi(messagePost);
         if (medias.length) {
@@ -79,22 +74,13 @@ async function eventHandler(event) {
             parseMode: "md2",
           });
         }
+        console.log(medias, messagePost, idTimeout, "message 2");
 
         messagePost = null;
         medias = [];
         clearTimeout(idTimeout);
         idTimeout = null;
       }, 2000);
-    } else if (messagePost) {
-      const isAttac = messagePost.includes(ACTIVE);
-      await client.sendMessage(CHANNEL_ID, {
-        message: isAttac ? messagePost : "🟢 **ВІДБІЙ ПОВІТРЯНОЇ ТРИВОГИ** 🟢",
-        parseMode: "md2",
-      });
-      messagePost = null;
-      medias = [];
-    } else {
-      medias = [];
     }
   } else {
     run();
