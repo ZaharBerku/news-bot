@@ -11,11 +11,11 @@ const {
   LISTEN_CHANNEL_ID,
   API_ID: apiId,
   SESSION_TOKEN,
-  SECOND_LISTEN_CHANNEL_ID,
+  TELEGRAM_NAME,
 } = process.env;
 
-const ACTIVE = "Вся Україна — ракетна небезпека";
-const DIACTIVETE = "Загроза минула — відбій повітряної тривоги.";
+// const ACTIVE = "Вся Україна — ракетна небезпека";
+// const DIACTIVETE = "Загроза минула — відбій повітряної тривоги.";
 
 let idTimeout = null;
 let medias = [];
@@ -51,7 +51,6 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(message, "message 1");
   if (message) {
     if (!messagePost) {
       messagePost = message.message;
@@ -61,29 +60,38 @@ async function eventHandler(event) {
     }
     if (messagePost && !idTimeout) {
       idTimeout = setTimeout(async () => {
-        const answer = await openaiapi(messagePost);
-        if (medias.length) {
-          await client.sendFile(CHANNEL_ID, {
-            file: medias,
-            caption: answer,
-            parseMode: "md2",
-          });
-        } else {
-          await client.sendMessage(CHANNEL_ID, {
-            message: answer,
-            parseMode: "md2",
+        try {
+          const answer = await openaiapi(messagePost);
+          if (answer !== "реклама") {
+            if (medias.length) {
+              await client.sendFile(CHANNEL_ID, {
+                file: medias,
+                caption: answer,
+                parseMode: "md2",
+              });
+            } else {
+              await client.sendMessage(CHANNEL_ID, {
+                message: answer,
+                parseMode: "md2",
+              });
+            }
+          }
+
+          messagePost = null;
+          medias = [];
+          clearTimeout(idTimeout);
+          idTimeout = null;
+        } catch (error) {
+          await client.sendMessage(TELEGRAM_NAME, {
+            message: "/news",
           });
         }
-        console.log(medias, messagePost, idTimeout, "message 2");
-
-        messagePost = null;
-        medias = [];
-        clearTimeout(idTimeout);
-        idTimeout = null;
       }, 2000);
     }
   } else {
-    run();
+    await client.sendMessage(TELEGRAM_NAME, {
+      message: "/news",
+    });
   }
 }
 

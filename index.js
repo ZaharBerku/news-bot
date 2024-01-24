@@ -22,9 +22,10 @@ const start = () => {
   bot.on("message", async (msg) => {
     const text = msg.text;
     const chatId = msg.chat.id;
-    if (msg.from.id !== +USER_ID) {
+    if (!USER_ID.includes(msg.from.id)) {
       return;
     }
+
     try {
       if (text?.startsWith("/news")) {
         runClient();
