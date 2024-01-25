@@ -93,12 +93,12 @@ async function eventHandler(event) {
               await client.sendFile(CHANNEL_ID, {
                 file: medias,
                 caption: answer,
-                parseMode: "md2",
+                parseMode: "md",
               });
             } else {
               await client.sendMessage(CHANNEL_ID, {
                 message: answer,
-                parseMode: "md2",
+                parseMode: "md",
               });
             }
           }
