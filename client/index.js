@@ -1,6 +1,7 @@
-const { TelegramClient } = require("telegram");
+const { TelegramClient, Api } = require("telegram");
 const { NewMessage } = require("telegram/events");
 const { StringSession } = require("telegram/sessions");
+const fs = require("fs");
 const input = require("input");
 const openaiapi = require("../api/openai");
 require("dotenv").config();
@@ -20,6 +21,7 @@ const {
 let idTimeout = null;
 let medias = [];
 let messagePost = null;
+let base64 = null;
 
 const stringSession = new StringSession(SESSION_TOKEN);
 
@@ -60,10 +62,26 @@ async function eventHandler(event) {
     }
     if (messagePost && !idTimeout) {
       idTimeout = setTimeout(async () => {
+        if (medias.at(0)?.photo?.id) {
+          const buffer = await client.downloadFile(
+            new Api.InputPhotoFileLocation({
+              id: medias.at(0).photo.id,
+              accessHash: medias.at(0).photo.accessHash,
+              fileReference: medias.at(0).photo.fileReference,
+              thumbSize: "y",
+            }),
+            {
+              dcId: medias.at(0).photo.dcId,
+            }
+          );
+          base64 = buffer.toString("base64");
+        }
+
         try {
-          const answer = await openaiapi(messagePost);
+          const { answer, isMedia } = await openaiapi(messagePost, base64);
+
           if (answer !== "реклама") {
-            if (medias.length) {
+            if (medias.length && isMedia === "false") {
               await client.sendFile(CHANNEL_ID, {
                 file: medias,
                 caption: answer,
@@ -78,10 +96,12 @@ async function eventHandler(event) {
           }
 
           messagePost = null;
+          base64 = null;
           medias = [];
           clearTimeout(idTimeout);
           idTimeout = null;
         } catch (error) {
+          console.log(error);
           await client.sendMessage(TELEGRAM_NAME, {
             message: "/news",
           });
