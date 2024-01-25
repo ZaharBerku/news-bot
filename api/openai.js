@@ -7,10 +7,10 @@ const openaiapi = async (news, base64, numberOfChar) => {
   let isLogoTCH = "false";
   const lengthString = news || news.split(" ").length;
 
-  if (base64) {
-    const checkLogo = await openaiPhoto(base64);
-    isLogoTCH = checkLogo;
-  }
+  // if (base64) {
+  //   const checkLogo = await openaiPhoto(base64);
+  //   isLogoTCH = checkLogo;
+  // }
 
   const messages = [
     {
