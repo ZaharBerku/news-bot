@@ -80,9 +80,12 @@ async function eventHandler(event) {
 
         try {
           const { answer, isMedia } = await openaiapi(messagePost, base64);
-
+          console.log({
+            answer,
+            isMedia,
+          });
           if (answer !== "реклама") {
-            if (medias.length && isMedia === "false") {
+            if (medias.length && isMedia !== "true") {
               await client.sendFile(CHANNEL_ID, {
                 file: medias,
                 caption: answer,
