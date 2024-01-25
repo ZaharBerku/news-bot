@@ -79,7 +79,11 @@ async function eventHandler(event) {
         }
 
         try {
-          const { answer, isMedia } = await openaiapi(messagePost, base64);
+          const { answer, isMedia } = await openaiapi(
+            messagePost,
+            base64,
+            medias.length ? 1000 : 4000
+          );
           console.log({
             answer,
             isMedia,
