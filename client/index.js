@@ -110,7 +110,7 @@ async function eventHandler(event) {
             message: "/news",
           });
         }
-      }, 2000);
+      }, 5000);
     }
   } else {
     await client.sendMessage(TELEGRAM_NAME, {
