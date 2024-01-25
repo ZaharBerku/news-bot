@@ -53,6 +53,7 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
+  console.log(idTimeout, medias, messagePost, base64);
   if (message) {
     if (!messagePost) {
       messagePost = message.message;
