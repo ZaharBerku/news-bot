@@ -88,19 +88,17 @@ async function eventHandler(event) {
             answer,
             isMedia,
           });
-          if (answer !== "реклама") {
-            if (medias.length && isMedia !== "true") {
-              await client.sendFile(CHANNEL_ID, {
-                file: medias,
-                caption: answer,
-                parseMode: "md",
-              });
-            } else {
-              await client.sendMessage(CHANNEL_ID, {
-                message: answer,
-                parseMode: "md",
-              });
-            }
+          if (medias.length && isMedia !== "true") {
+            await client.sendFile(CHANNEL_ID, {
+              file: medias,
+              caption: answer,
+              parseMode: "html",
+            });
+          } else {
+            await client.sendMessage(CHANNEL_ID, {
+              message: answer,
+              parseMode: "html",
+            });
           }
 
           messagePost = null;
