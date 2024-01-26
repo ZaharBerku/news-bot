@@ -88,7 +88,7 @@ async function eventHandler(event) {
             answer,
             isMedia,
           });
-          if (medias.length && isMedia !== "true") {
+          if (medias.length) {
             await client.sendFile(CHANNEL_ID, {
               file: medias,
               caption: answer,
@@ -108,6 +108,11 @@ async function eventHandler(event) {
           idTimeout = null;
         } catch (error) {
           console.log(error);
+          messagePost = null;
+          base64 = null;
+          medias = [];
+          clearTimeout(idTimeout);
+          idTimeout = null;
           await client.sendMessage(TELEGRAM_NAME, {
             message: "/news",
           });
@@ -115,6 +120,11 @@ async function eventHandler(event) {
       }, 5000);
     }
   } else {
+    messagePost = null;
+    base64 = null;
+    medias = [];
+    clearTimeout(idTimeout);
+    idTimeout = null;
     await client.sendMessage(TELEGRAM_NAME, {
       message: "/news",
     });
