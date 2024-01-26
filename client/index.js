@@ -3,6 +3,7 @@ const { NewMessage } = require("telegram/events");
 const { StringSession } = require("telegram/sessions");
 const fs = require("fs");
 const input = require("input");
+const detectMarkdownType = require("../helpers/detectMarkdownType");
 const openaiapi = require("../api/openai");
 require("dotenv").config();
 
@@ -53,7 +54,7 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(idTimeout, medias, messagePost, 'eventHandler');
+  console.log(idTimeout, medias, messagePost, "eventHandler");
   if (message) {
     if (!messagePost) {
       messagePost = message.message;
@@ -84,20 +85,25 @@ async function eventHandler(event) {
             base64,
             medias.length ? 1000 : 4000
           );
-          console.log({
-            answer,
-            isMedia,
-          }, 'openaiapi');
+          const parseMode = detectMarkdownType(answer);
+          console.log(
+            {
+              answer,
+              isMedia,
+              parseMode,
+            },
+            "openaiapi"
+          );
           if (medias.length) {
             await client.sendFile(CHANNEL_ID, {
               file: medias,
               caption: answer,
-              parseMode: "html",
+              parseMode,
             });
           } else {
             await client.sendMessage(CHANNEL_ID, {
               message: answer,
-              parseMode: "html",
+              parseMode,
             });
           }
 
