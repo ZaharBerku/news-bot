@@ -53,7 +53,7 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(idTimeout, medias, messagePost, base64);
+  console.log(idTimeout, medias, messagePost, 'eventHandler');
   if (message) {
     if (!messagePost) {
       messagePost = message.message;
@@ -87,7 +87,7 @@ async function eventHandler(event) {
           console.log({
             answer,
             isMedia,
-          });
+          }, 'openaiapi');
           if (medias.length) {
             await client.sendFile(CHANNEL_ID, {
               file: medias,
