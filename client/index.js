@@ -54,7 +54,7 @@ async function authorize() {
 
 async function eventHandler(event) {
   const message = event.message;
-  console.log(idTimeout, medias, messagePost, "eventHandler");
+  console.log(message, "eventHandler");
   if (message) {
     if (!messagePost) {
       messagePost = message.message;
@@ -64,20 +64,6 @@ async function eventHandler(event) {
     }
     if (messagePost && !idTimeout) {
       idTimeout = setTimeout(async () => {
-        // if (medias.at(0)?.photo?.id) {
-        //   const buffer = await client.downloadFile(
-        //     new Api.InputPhotoFileLocation({
-        //       id: medias.at(0).photo.id,
-        //       accessHash: medias.at(0).photo.accessHash,
-        //       fileReference: medias.at(0).photo.fileReference,
-        //       thumbSize: "y",
-        //     }),
-        //     {
-        //       dcId: medias.at(0).photo.dcId,
-        //     }
-        //   );
-        //   base64 = buffer.toString("base64");
-        // }
 
         try {
           const { answer, isMedia } = await openaiapi(
