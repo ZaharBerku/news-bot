@@ -106,6 +106,7 @@ async function eventHandler(event) {
             "openaiapi"
           );
           await sendPost(answer, medias, parseMode);
+          resetValues();
         } catch (error) {
           console.log(error);
           await sendPost(messagePost, medias, "md");
