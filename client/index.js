@@ -29,7 +29,11 @@ const stringSession = new StringSession(SESSION_TOKEN);
 const client = new TelegramClient(stringSession, +apiId, apiHash, {
   connectionRetries: 5,
 });
-
+// +
+//                 "\n\n" +
+//                 (parseMode === "md" || parseMode === "md2"
+//                   ? "[ІнфоШоТи](https://t.me/info_sho_tu)"
+//                   : "<a href='https://t.me/info_sho_tu'>ІнфоШоТи</a>"),
 async function authorize() {
   await client.connect();
   const isAuth = await client.checkAuthorization();
@@ -82,18 +86,12 @@ async function eventHandler(event) {
           if (medias.length) {
             await client.sendFile(CHANNEL_ID, {
               file: medias,
-              caption:
-                answer +
-                "\n" +
-                '<a href="https://t.me/testttesax">ІнфоШоТи</a>',
+              caption: answer,
               parseMode,
             });
           } else {
             await client.sendMessage(CHANNEL_ID, {
-              message:
-                answer +
-                "\n" +
-                '<a href="https://t.me/testttesax">ІнфоШоТи</a>',
+              message: answer,
               parseMode,
             });
           }
