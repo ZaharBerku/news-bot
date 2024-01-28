@@ -64,7 +64,6 @@ async function eventHandler(event) {
     }
     if (messagePost && !idTimeout) {
       idTimeout = setTimeout(async () => {
-
         try {
           const { answer, isMedia } = await openaiapi(
             messagePost,
@@ -83,12 +82,18 @@ async function eventHandler(event) {
           if (medias.length) {
             await client.sendFile(CHANNEL_ID, {
               file: medias,
-              caption: answer,
+              caption:
+                answer +
+                "\n" +
+                '<a href="https://t.me/testttesax">ІнфоШоТи</a>',
               parseMode,
             });
           } else {
             await client.sendMessage(CHANNEL_ID, {
-              message: answer,
+              message:
+                answer +
+                "\n" +
+                '<a href="https://t.me/testttesax">ІнфоШоТи</a>',
               parseMode,
             });
           }
