@@ -8,8 +8,6 @@ const { TELEGRAM_BOT_TOKEN, CHANNEL_ID, USER_ID } = process.env;
 const bot = new TelegramApi(TELEGRAM_BOT_TOKEN, { polling: true });
 
 let idInterval = null;
-let prevTitle = null;
-let isLoading = false;
 
 const start = () => {
   bot.setMyCommands([

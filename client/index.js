@@ -56,9 +56,31 @@ async function authorize() {
   return client;
 }
 
+const resetValues = () => {
+  messagePost = null;
+  base64 = null;
+  medias = [];
+  clearTimeout(idTimeout);
+  idTimeout = null;
+};
+
+const sendPost = async (message, medias, parseMode) => {
+  if (medias.length) {
+    await client.sendFile(CHANNEL_ID, {
+      file: medias,
+      caption: message,
+      parseMode,
+    });
+  } else if (message) {
+    await client.sendMessage(CHANNEL_ID, {
+      message: message,
+      parseMode,
+    });
+  }
+};
+
 async function eventHandler(event) {
   const message = event.message;
-  console.log(message, "eventHandler");
   if (message) {
     if (!messagePost) {
       messagePost = message.message;
@@ -66,13 +88,13 @@ async function eventHandler(event) {
     if (message.media) {
       medias.push(message.media);
     }
-    if (messagePost && !idTimeout) {
+    if (!idTimeout) {
       idTimeout = setTimeout(async () => {
         try {
           const { answer, isMedia } = await openaiapi(
-            messagePost,
+            messagePost || "",
             base64,
-            medias.length ? 1000 : 4000
+            medias.length ? 800 : 3000
           );
           const parseMode = detectMarkdownType(answer);
           console.log(
@@ -83,31 +105,11 @@ async function eventHandler(event) {
             },
             "openaiapi"
           );
-          if (medias.length) {
-            await client.sendFile(CHANNEL_ID, {
-              file: medias,
-              caption: answer,
-              parseMode,
-            });
-          } else {
-            await client.sendMessage(CHANNEL_ID, {
-              message: answer,
-              parseMode,
-            });
-          }
-
-          messagePost = null;
-          base64 = null;
-          medias = [];
-          clearTimeout(idTimeout);
-          idTimeout = null;
+          await sendPost(answer, medias, parseMode);
         } catch (error) {
           console.log(error);
-          messagePost = null;
-          base64 = null;
-          medias = [];
-          clearTimeout(idTimeout);
-          idTimeout = null;
+          await sendPost(messagePost, medias, "md");
+          resetValues();
           await client.sendMessage(TELEGRAM_NAME, {
             message: "/news",
           });
@@ -115,11 +117,7 @@ async function eventHandler(event) {
       }, 5000);
     }
   } else {
-    messagePost = null;
-    base64 = null;
-    medias = [];
-    clearTimeout(idTimeout);
-    idTimeout = null;
+    resetValues();
     await client.sendMessage(TELEGRAM_NAME, {
       message: "/news",
     });
@@ -131,7 +129,7 @@ async function run() {
 
   client.addEventHandler(
     (event) => eventHandler(event),
-    new NewMessage({ chats: [LISTEN_CHANNEL_ID] })
+    new NewMessage({ chats: LISTEN_CHANNEL_ID.split(",") })
   );
 }
 

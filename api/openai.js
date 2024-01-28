@@ -3,7 +3,7 @@ require("dotenv").config();
 
 const { OPENAI_API_KEY } = process.env;
 
-const openaiapi = async (news, base64, numberOfChar) => {
+const openaiapi = async (news = "", base64, numberOfChar) => {
   let isLogoTCH = "false";
   const lengthString = news && news.split(" ").length;
 
@@ -30,7 +30,6 @@ const openaiapi = async (news, base64, numberOfChar) => {
       // ", сформуй телеграм-пост без використання блоків коду (таких як ```html ```) і забезпеч, щоб всі HTML-теги були використані безпосередньо в тексті і не треба писати Примітки в постах від себе тільки пост. Збережи оригінальний заголовку статті у вигляді HTML-заголовка. Переформулюй текст стисло і ясно, зберігаючи основну інформацію. Використовуй коректну граматику та лексику. Додай до 3 тегів (писати слово для тега разом і не треба виділяти теги словом -Теги), використовуй HTML-маркдауни та смайлики для кращої візуалізації. Ні в якому разі не додава ніяких посилань. Залиш офіційні назви без перекладу. Якщо у тексті є цитати, залиш їх як є і не видаляй, завжди використовуй їх. Уникай надмірної деталізації та інструкцій де читати подальшу інформацію - не потрібні. Пост повинен бути не більше ніж на" + numberOfChar + "символів і без побажань в кінець. Дякую.",
     },
   ];
-
   const requestOptions = {
     method: "POST",
     headers: {
@@ -43,7 +42,7 @@ const openaiapi = async (news, base64, numberOfChar) => {
       max_tokens: 2000,
     }),
   };
-  if (lengthString > 20) {
+  if (news && lengthString > 20) {
     const response = await fetch(
       "https://api.openai.com/v1/chat/completions",
       requestOptions
