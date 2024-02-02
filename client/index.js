@@ -65,14 +65,16 @@ const resetValues = () => {
 };
 
 const sendPost = async (message, medias, parseMode) => {
+  const cleanDialogIdString = CHANNEL_ID.replace("n", "");
+  const dialogIdBigInt = BigInt(cleanDialogIdString);
   if (medias.length) {
-    await client.sendFile(CHANNEL_ID, {
+    await client.sendFile(dialogIdBigInt, {
       file: medias,
       caption: message,
       parseMode,
     });
   } else if (message) {
-    await client.sendMessage(CHANNEL_ID, {
+    await client.sendMessage(dialogIdBigInt, {
       message: message,
       parseMode,
     });
