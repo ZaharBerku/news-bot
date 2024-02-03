@@ -11,7 +11,7 @@ function detectMarkdownType(text) {
     return "md2";
   }
 
-  return "md";
+  return "md2";
 }
 
 module.exports = detectMarkdownType;

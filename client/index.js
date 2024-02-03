@@ -16,9 +16,6 @@ const {
   TELEGRAM_NAME,
 } = process.env;
 
-// const ACTIVE = "Вся Україна — ракетна небезпека";
-// const DIACTIVETE = "Загроза минула — відбій повітряної тривоги.";
-
 let idTimeout = null;
 let medias = [];
 let messagePost = null;
@@ -29,11 +26,7 @@ const stringSession = new StringSession(SESSION_TOKEN);
 const client = new TelegramClient(stringSession, +apiId, apiHash, {
   connectionRetries: 5,
 });
-// +
-//                 "\n\n" +
-//                 (parseMode === "md" || parseMode === "md2"
-//                   ? "[ІнфоШоТи](https://t.me/info_sho_tu)"
-//                   : "<a href='https://t.me/info_sho_tu'>ІнфоШоТи</a>"),
+
 async function authorize() {
   await client.connect();
   const isAuth = await client.checkAuthorization();
@@ -67,15 +60,21 @@ const resetValues = () => {
 const sendPost = async (message, medias, parseMode) => {
   const cleanDialogIdString = CHANNEL_ID.replace("n", "");
   const dialogIdBigInt = BigInt(cleanDialogIdString);
+  const linkInEndMessage =
+    parseMode === "md"
+      ? "\n\n" + parseMode === "md2"
+        ? "[ІнфоШоТи | Новини України | Повітряні тривоги](https://t.me/info_sho_tu)"
+        : "<a href='https://t.me/info_sho_tu'>ІнфоШоТи | Новини України | Повітряні тривоги</a>"
+      : "";
   if (medias.length) {
     await client.sendFile(dialogIdBigInt, {
       file: medias,
-      caption: message,
+      caption: message + linkInEndMessage,
       parseMode,
     });
   } else if (message) {
     await client.sendMessage(dialogIdBigInt, {
-      message: message,
+      message: message + linkInEndMessage,
       parseMode,
     });
   }
@@ -111,7 +110,7 @@ async function eventHandler(event) {
           resetValues();
         } catch (error) {
           console.log(error);
-          await sendPost(messagePost, medias, "md");
+          await sendPost(messagePost, medias, "md2");
           resetValues();
           await client.sendMessage(TELEGRAM_NAME, {
             message: "/news",
