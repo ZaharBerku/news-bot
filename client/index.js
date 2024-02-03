@@ -61,7 +61,7 @@ const sendPost = async (message, medias, parseMode) => {
   const cleanDialogIdString = CHANNEL_ID.replace("n", "");
   const dialogIdBigInt = BigInt(cleanDialogIdString);
   const linkInEndMessage =
-    parseMode === "md"
+    parseMode !== "md"
       ? "\n\n" + parseMode === "md2"
         ? "[ІнфоШоТи | Новини України | Повітряні тривоги](https://t.me/info_sho_tu)"
         : "<a href='https://t.me/info_sho_tu'>ІнфоШоТи | Новини України | Повітряні тривоги</a>"
