@@ -62,9 +62,10 @@ const sendPost = async (message, medias, parseMode) => {
   const dialogIdBigInt = BigInt(cleanDialogIdString);
   const linkInEndMessage =
     parseMode !== "md"
-      ? "\n\n" + parseMode === "md2"
-        ? "[ІнфоШоТи | Новини України | Повітряні тривоги](https://t.me/info_sho_tu)"
-        : "<a href='https://t.me/info_sho_tu'>ІнфоШоТи | Новини України | Повітряні тривоги</a>"
+      ? "\n\n" +
+        (parseMode === "md2"
+          ? "[ІнфоШоТи | Новини України | Повітряні тривоги](https://t.me/info_sho_tu)"
+          : "<a href='https://t.me/info_sho_tu'>ІнфоШоТи | Новини України | Повітряні тривоги</a>")
       : "";
   if (medias.length) {
     await client.sendFile(dialogIdBigInt, {
