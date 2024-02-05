@@ -113,17 +113,17 @@ async function eventHandler(event) {
           console.log(error);
           await sendPost(messagePost, medias, "md2");
           resetValues();
-          await client.sendMessage(TELEGRAM_NAME, {
-            message: "/news",
-          });
+          // await client.sendMessage(TELEGRAM_NAME, {
+          //   message: "/news",
+          // });
         }
       }, 5000);
     }
   } else {
     resetValues();
-    await client.sendMessage(TELEGRAM_NAME, {
-      message: "/news",
-    });
+    // await client.sendMessage(TELEGRAM_NAME, {
+    //   message: "/news",
+    // });
   }
 }
 
