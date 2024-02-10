@@ -26,6 +26,7 @@ const {
 } = process.env;
 
 let idTimeout = null;
+let idNotSend = null;
 let queue = {};
 
 const stringSession = new StringSession(SESSION_TOKEN);
@@ -103,28 +104,38 @@ const fetchSendPost = async (messagePost = "", medias = []) => {
 
 async function eventHandler(event) {
   const message = event.message;
-
   const groupId = message.groupedId?.value || message.id;
-  queue = { ...queue, [groupId]: queue[groupId] || {} };
-  if (message) {
-    if (!queue[groupId]?.messagePost) {
-      queue[groupId].messagePost = message.message;
-    }
-    if (message.media) {
-      queue[groupId].medias = [...(queue[groupId].medias || []), message.media];
-    }
-    if (!idTimeout) {
-      idTimeout = setTimeout(async () => {
-        await Promise.allSettled(
-          Object.values(queue).map((post) =>
-            fetchSendPost(post.messagePost, post.medias)
-          )
-        );
-        resetValues();
-      }, 5000);
+  if (
+    message.message.includes("monobank") &&
+    groupId !== idNotSend &&
+    !message.replyTo
+  ) {
+    queue = { ...queue, [groupId]: queue[groupId] || {} };
+    if (message) {
+      if (!queue[groupId]?.messagePost) {
+        queue[groupId].messagePost = message.message;
+      }
+      if (message.media) {
+        queue[groupId].medias = [
+          ...(queue[groupId].medias || []),
+          message.media,
+        ];
+      }
+      if (!idTimeout) {
+        idTimeout = setTimeout(async () => {
+          await Promise.allSettled(
+            Object.values(queue).map((post) =>
+              fetchSendPost(post.messagePost, post.medias)
+            )
+          );
+          resetValues();
+        }, 5000);
+      }
+    } else {
+      resetValues();
     }
   } else {
-    resetValues();
+    idNotSend = groupId;
   }
 }
 
