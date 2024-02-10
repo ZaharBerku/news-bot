@@ -1,11 +1,21 @@
 const { TelegramClient, Api } = require("telegram");
 const { NewMessage } = require("telegram/events");
 const { StringSession } = require("telegram/sessions");
-const fs = require("fs");
+const Sentry = require("@sentry/node");
+const { ProfilingIntegration } = require("@sentry/profiling-node");
 const input = require("input");
 const detectMarkdownType = require("../helpers/detectMarkdownType");
 const openaiapi = require("../api/openai");
 require("dotenv").config();
+
+Sentry.init({
+  dsn: "https://226a2d352a309c7d580b264926e16caf@o4506622533959680.ingest.sentry.io/4506722310619136",
+  integrations: [new ProfilingIntegration()],
+  // Performance Monitoring
+  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  // Set sampling rate for profiling - this is relative to tracesSampleRate
+  profilesSampleRate: 1.0,
+});
 
 const {
   API_HASH: apiHash,
@@ -13,13 +23,10 @@ const {
   LISTEN_CHANNEL_ID,
   API_ID: apiId,
   SESSION_TOKEN,
-  TELEGRAM_NAME,
 } = process.env;
 
 let idTimeout = null;
-let medias = [];
-let messagePost = null;
-let base64 = null;
+let queue = {};
 
 const stringSession = new StringSession(SESSION_TOKEN);
 
@@ -50,9 +57,7 @@ async function authorize() {
 }
 
 const resetValues = () => {
-  messagePost = null;
-  base64 = null;
-  medias = [];
+  queue = {};
   clearTimeout(idTimeout);
   idTimeout = null;
 };
@@ -74,66 +79,71 @@ const sendPost = async (message, medias, parseMode) => {
       parseMode,
     });
   } else if (message) {
-    await client.sendMessage(dialogIdBigInt, {
-      message: message + linkInEndMessage,
+    await client.sendMessage(CHANNEL_ID, {
+      message: message.length >= 3000 ? message : message + linkInEndMessage,
       parseMode,
     });
   }
 };
 
+const fetchSendPost = async (messagePost = "", medias = []) => {
+  try {
+    const { answer } = await openaiapi(
+      messagePost,
+      medias?.length ? 800 : 3000
+    );
+    const parseMode = detectMarkdownType(answer);
+    await sendPost(answer, medias, parseMode);
+  } catch (error) {
+    console.log(error, "error");
+
+    await sendPost(messagePost, medias, "md2");
+  }
+};
+
 async function eventHandler(event) {
   const message = event.message;
+
+  const groupId = message.groupedId?.value || message.id;
+  queue = { ...queue, [groupId]: queue[groupId] || {} };
   if (message) {
-    if (!messagePost) {
-      messagePost = message.message;
+    if (!queue[groupId]?.messagePost) {
+      queue[groupId].messagePost = message.message;
     }
     if (message.media) {
-      medias.push(message.media);
+      queue[groupId].medias = [...(queue[groupId].medias || []), message.media];
     }
     if (!idTimeout) {
       idTimeout = setTimeout(async () => {
-        try {
-          const { answer, isMedia } = await openaiapi(
-            messagePost || "",
-            base64,
-            medias.length ? 800 : 3000
-          );
-          const parseMode = detectMarkdownType(answer);
-          console.log(
-            {
-              answer,
-              isMedia,
-              parseMode,
-            },
-            "openaiapi"
-          );
-          await sendPost(answer, medias, parseMode);
-          resetValues();
-        } catch (error) {
-          console.log(error);
-          await sendPost(messagePost, medias, "md2");
-          resetValues();
-          // await client.sendMessage(TELEGRAM_NAME, {
-          //   message: "/news",
-          // });
-        }
+        await Promise.allSettled(
+          Object.values(queue).map((post) =>
+            fetchSendPost(post.messagePost, post.medias)
+          )
+        );
+        resetValues();
       }, 5000);
     }
   } else {
     resetValues();
-    // await client.sendMessage(TELEGRAM_NAME, {
-    //   message: "/news",
-    // });
   }
 }
 
 async function run() {
-  const client = await authorize();
+  if (!client.connected) {
+    setInterval(() => {
+      console.log(client.connected, "client.connected");
+      if (!client.connected) {
+        run();
+      }
+    }, 1000 * 60 * 10);
 
-  client.addEventHandler(
-    (event) => eventHandler(event),
-    new NewMessage({ chats: LISTEN_CHANNEL_ID.split(",") })
-  );
+    const authClient = await authorize();
+
+    authClient.addEventHandler(
+      (event) => eventHandler(event),
+      new NewMessage({ chats: LISTEN_CHANNEL_ID.split(",") })
+    );
+  }
 }
 
 module.exports = run;

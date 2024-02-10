@@ -1,15 +1,16 @@
 const TelegramApi = require("node-telegram-bot-api");
 const runClient = require("./client/index.js");
-const clearIdInterval = require("./helpers/clearIdInterval.js");
 require("dotenv").config();
 
-const { TELEGRAM_BOT_TOKEN, CHANNEL_ID, USER_ID } = process.env;
+const { TELEGRAM_BOT_TOKEN, USER_ID } = process.env;
 
 const bot = new TelegramApi(TELEGRAM_BOT_TOKEN, { polling: true });
 
-let idInterval = null;
-
 const start = () => {
+  bot.on('error', (error) => {
+    console.log(error.code, 'error start');
+  });
+  
   bot.setMyCommands([
     {
       command: "/news",
@@ -17,6 +18,7 @@ const start = () => {
     },
     { command: "/stop", description: "Зупинити відслітковувати новини." },
   ]);
+
   bot.on("message", async (msg) => {
     const text = msg.text;
     const chatId = msg.chat.id;
@@ -28,12 +30,6 @@ const start = () => {
       if (text?.startsWith("/news")) {
         runClient();
         return;
-      }
-      if (text?.startsWith("/stop")) {
-        if (idInterval) {
-          clearIdInterval(idInterval);
-          return bot.sendMessage(CHANNEL_ID, "Генерація новин - призепинена.");
-        }
       }
       return bot.sendMessage(chatId, "I don't understand you, try again!");
     } catch (e) {
