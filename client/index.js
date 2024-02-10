@@ -80,7 +80,7 @@ const sendPost = async (message, medias, parseMode) => {
       parseMode,
     });
   } else if (message) {
-    await client.sendMessage(CHANNEL_ID, {
+    await client.sendMessage(dialogIdBigInt, {
       message: message.length >= 3000 ? message : message + linkInEndMessage,
       parseMode,
     });
@@ -121,6 +121,7 @@ async function eventHandler(event) {
           message.media,
         ];
       }
+      console.log(queue, 'queue')
       if (!idTimeout) {
         idTimeout = setTimeout(async () => {
           await Promise.allSettled(
