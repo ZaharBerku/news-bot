@@ -106,7 +106,7 @@ async function eventHandler(event) {
   const message = event.message;
   const groupId = message.groupedId?.value || message.id;
   if (
-    message.message.includes("monobank") &&
+    !message.message.includes("monobank") &&
     groupId !== idNotSend &&
     !message.replyTo
   ) {
