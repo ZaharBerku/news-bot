@@ -87,7 +87,7 @@ const sendPost = async (message, medias, parseMode) => {
   }
 };
 
-const fetchSendPost = async (messagePost = "", medias = []) => {
+const fetchSendPost = async (messagePost = "", medias = [], name) => {
   try {
     const { answer } = await openaiapi(
       messagePost,
@@ -99,6 +99,9 @@ const fetchSendPost = async (messagePost = "", medias = []) => {
     console.log(error, "error");
 
     await sendPost(messagePost, medias, "md2");
+  } finally {
+    const { [name]: alreadySend, ...lastQueue } = queue;
+    queue = lastQueue || {};
   }
 };
 
@@ -121,17 +124,17 @@ async function eventHandler(event) {
           message.media,
         ];
       }
-      console.log(queue, 'queue')
-      if (!idTimeout) {
-        idTimeout = setTimeout(async () => {
-          await Promise.allSettled(
-            Object.values(queue).map((post) =>
-              fetchSendPost(post.messagePost, post.medias)
-            )
-          );
-          resetValues();
-        }, 5000);
+      if (idTimeout) {
+        clearTimeout(idTimeout);
+        idTimeout = null;
       }
+      idTimeout = setTimeout(async () => {
+        await Promise.allSettled(
+          Object.entries(queue).map(([name, post]) =>
+            fetchSendPost(post.messagePost, post.medias, name)
+          )
+        );
+      }, 5000);
     } else {
       resetValues();
     }
@@ -142,17 +145,10 @@ async function eventHandler(event) {
 
 async function run() {
   if (!client.connected) {
-    setInterval(() => {
-      console.log(client.connected, "client.connected");
-      if (!client.connected) {
-        run();
-      }
-    }, 1000 * 60 * 10);
-
     const authClient = await authorize();
 
     authClient.addEventHandler(
-      (event) => eventHandler(event),
+      eventHandler,
       new NewMessage({ chats: LISTEN_CHANNEL_ID.split(",") })
     );
   }
