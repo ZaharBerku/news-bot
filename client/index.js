@@ -111,7 +111,8 @@ async function eventHandler(event) {
   if (
     !message.message.includes("monobank") &&
     groupId !== idNotSend &&
-    !message.replyTo
+    !message.replyTo &&
+    !message.replyMarkup
   ) {
     queue = { ...queue, [groupId]: queue[groupId] || {} };
     if (message) {
