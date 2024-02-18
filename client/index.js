@@ -144,6 +144,7 @@ async function eventHandler(event) {
 }
 
 async function run() {
+  console.log(client.connected, "client.connected");
   if (!client.connected) {
     const authClient = await authorize();
 
