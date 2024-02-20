@@ -36,25 +36,30 @@ const client = new TelegramClient(stringSession, +apiId, apiHash, {
 });
 
 async function authorize() {
-  await client.connect();
-  const isAuth = await client.checkAuthorization();
-
-  if (isAuth) {
-    console.log("I am logged in!");
-  } else {
-    await client.start({
-      phoneNumber: async () => await input.text("Please enter your number: "),
-      phoneCode: async () =>
-        await input.text("Please enter the code you received: "),
-      onError: (err) => console.log(err),
-    });
-    const seesion = client.session.save();
-    console.log(seesion, "seesion");
-    console.log(
-      "I am connected to telegram servers but not logged in with any account. Let's autorize"
-    );
+  try{
+    await client.connect();
+    const isAuth = await client.checkAuthorization();
+  
+    if (isAuth) {
+      console.log("I am logged in!");
+    } else {
+      await client.start({
+        phoneNumber: async () => await input.text("Please enter your number: "),
+        phoneCode: async () =>
+          await input.text("Please enter the code you received: "),
+        onError: (err) => console.log(err),
+      });
+      const seesion = client.session.save();
+      console.log(seesion, "seesion");
+      console.log(
+        "I am connected to telegram servers but not logged in with any account. Let's autorize"
+      );
+    }
+    return client;
+  }catch(error){
+    console.log(error, 'error')
   }
-  return client;
+
 }
 
 const resetValues = () => {
@@ -98,7 +103,7 @@ const fetchSendPost = async (messagePost = "", medias = [], name) => {
   } catch (error) {
     console.log(error, "error");
 
-    await sendPost(messagePost, medias, "md2");
+    await sendPost(messagePost, medias, "md");
   } finally {
     const { [name]: alreadySend, ...lastQueue } = queue;
     queue = lastQueue || {};
@@ -145,7 +150,7 @@ async function eventHandler(event) {
 }
 
 async function run() {
-  console.log(client.connected, "client.connected");
+  console.log(client.connected, client, "client.connected");
   if (!client.connected) {
     const authClient = await authorize();
 
