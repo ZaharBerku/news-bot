@@ -94,12 +94,8 @@ const sendPost = async (message, medias, parseMode) => {
 
 const fetchSendPost = async (messagePost = "", medias = [], name) => {
   try {
-    const { answer } = await openaiapi(
-      messagePost,
-      medias?.length ? 800 : 3000
-    );
-    const parseMode = detectMarkdownType(answer);
-    await sendPost(answer, medias, parseMode);
+    const parseMode = detectMarkdownType(messagePost);
+    await sendPost(messagePost, medias, parseMode);
   } catch (error) {
     console.log(error, "error");
 
